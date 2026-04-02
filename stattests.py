@@ -153,17 +153,12 @@ def augmented_Dickey_Fuller_test(series, trend_type, max_lag=None, auto_lag_IC=A
         store=True
     )
     
-    max_lag_result     = results_store.maxlag
-    used_lags          = results_store.usedlag
-    ADF_regression_obs = results_store.nobs
-    info_crit_best     = results_store.icbest
-    
     auto_lag_result = AutoLagResult(
-        result_lags    = used_lags,
-        max_lag        = max_lag_result,
+        result_lags    = results_store.usedlag,
+        max_lag        = results_store.maxlag,
         max_lag_auto   = max_lag is None,
         info_crit      = auto_lag_IC,
-        info_crit_best = info_crit_best
+        info_crit_best = results_store.icbest
     )
     
     return AugmentedDickeyFullerTestResult(
@@ -171,7 +166,7 @@ def augmented_Dickey_Fuller_test(series, trend_type, max_lag=None, auto_lag_IC=A
         ADF_stat           = ADF_stat,
         pvalue             = pvalue,
         series_obs         = len(series),
-        ADF_regression_obs = ADF_regression_obs,
+        ADF_regression_obs = results_store.nobs,
         auto_lag_result    = auto_lag_result
     )
 

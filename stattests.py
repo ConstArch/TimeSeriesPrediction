@@ -23,32 +23,7 @@ class AbstractTestResult(ABC):
     
     @abstractmethod
     def to_str_evaluated(self, significance_level=0.05, indentation=0):
-        #return (
-        #    f'{self}\n'
-        #    'evaluated:\n'
-        #    f'    solution          : {self.evaluate(significance_level)}\n'
-        #    f'    significance_level: {significance_level}'
-        #)
         pass
-
-
-#class TestResult(AbstractTestResult):
-#    
-#    def __init__(self, distribution, pvalue, H_0='H_0', H_1='H_1'):
-#        self.distribution = distribution
-#        self.pvalue = pvalue
-#        self.H_0 = H_0
-#        self.H_1 = H_1
-#    
-#    def __str__(self):
-#        return (
-#            'test result:\n'
-#            f'    test statistic distribution: {self.distribution}\n'
-#            f'    p-value                    : {self.pvalue:.3f}'
-#        )
-#    
-#    def evaluate(self, significance_level=0.05):
-#        return self.H_1 if self.pvalue < significance_level else self.H_0
 
 
 class AutoLagInfoCriterionType(Enum):
@@ -73,7 +48,8 @@ class AutoLagInfoCriterionType(Enum):
 class AutoLagResult:
     
     result_lags    : int
-    max_lag        : Optional[int]
+    max_lag        : int
+    max_lag_auto   : bool
     info_crit      : AutoLagInfoCriterionType
     info_crit_best : Optional[float] = None
     
@@ -83,14 +59,14 @@ class AutoLagResult:
             return (
                 f'{ind_str}info criterion:\n'
                 f'{ind_str}    result lag     : {self.result_lags}\n'
-                f'{ind_str}    max lag        : {self.max_lag}\n'
+                f'{ind_str}    max lag        : {self.max_lag}{" (auto)" if self.max_lag_auto else ""}\n'
                 f'{ind_str}    info criterion : {self.info_crit} (best={self.info_crit_best:.3f})'
             )
         else:
             return (
                 f'{ind_str}without info criterion:\n'
                 f'{ind_str}    result lag : {self.result_lags}\n'
-                f'{ind_str}    max lag    : {self.max_lag}'
+                f'{ind_str}    max lag    : {self.max_lag}{" (auto)" if self.max_lag_auto else ""}'
             )
     
     def __str__(self):
@@ -169,31 +145,26 @@ class TrendType(Enum):
 
 def augmented_Dickey_Fuller_test(series, trend_type, max_lag=None, auto_lag_IC=AutoLagInfoCriterionType.AIC):
     
-    if auto_lag_IC is not AutoLagInfoCriterionType.NONE:
-        ADF_stat, pvalue, used_lags, ADF_regression_obs, crit_values, info_crit_best = adfuller(
-            series,
-            regression=trend_type.to_adfuller_parameter(),
-            maxlag=max_lag,
-            autolag=auto_lag_IC.to_adfuller_parameter()
-        )
-        auto_lag_result = AutoLagResult(
-            result_lags    = used_lags,
-            max_lag        = max_lag,
-            info_crit      = auto_lag_IC,
-            info_crit_best = info_crit_best
-        )
-    else:
-        ADF_stat, pvalue, used_lags, ADF_regression_obs, crit_values = adfuller(
-            series,
-            regression=trend_type.to_adfuller_parameter(),
-            maxlag=max_lag,
-            autolag=None
-        )
-        auto_lag_result = AutoLagResult(
-            result_lags = used_lags,
-            max_lag     = max_lag,
-            info_crit   = AutoLagInfoCriterionType.NONE
-        )
+    ADF_stat, pvalue, crit_values, results_store = adfuller(
+        series,
+        regression=trend_type.to_adfuller_parameter(),
+        maxlag=max_lag,
+        autolag=auto_lag_IC.to_adfuller_parameter(),
+        store=True
+    )
+    
+    max_lag_result     = results_store.maxlag
+    used_lags          = results_store.usedlag
+    ADF_regression_obs = results_store.nobs
+    info_crit_best     = results_store.icbest
+    
+    auto_lag_result = AutoLagResult(
+        result_lags    = used_lags,
+        max_lag        = max_lag_result,
+        max_lag_auto   = max_lag is None,
+        info_crit      = auto_lag_IC,
+        info_crit_best = info_crit_best
+    )
     
     return AugmentedDickeyFullerTestResult(
         distribution       = trend_type.to_DF_distribution_type(),
@@ -256,9 +227,6 @@ class GrangerTestResult(AbstractTestResult):
     
     def evaluate(self, significance_level=0.05):
         return 'causality' if self.pvalue < significance_level else 'non-causality'
-    
-    #def to_str_evaluated(self, significance_level=0.05, indentation=0):
-    #    return f'{self.to_str(indentation)} evaluated ({self.evaluate(significance_level)}, {significance_level=})'
     
     def to_str_evaluated(self, significance_level=0.05, indentation=0):
         ind_str = '    ' * indentation

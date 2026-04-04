@@ -5,7 +5,7 @@ from typing      import Optional
 
 import numpy as np
 import statsmodels.api as sm
-from statsmodels.tsa.stattools import adfuller
+import statsmodels.tsa.stattools
 
 
 class AbstractTestResult(ABC):
@@ -145,7 +145,7 @@ class TrendType(Enum):
 
 def augmented_Dickey_Fuller_test(series, trend_type, max_lag=None, auto_lag_IC=AutoLagInfoCriterionType.AIC):
     
-    ADF_stat, pvalue, crit_values, results_store = adfuller(
+    ADF_stat, pvalue, crit_values, results_store = statsmodels.tsa.stattools.adfuller(
         series,
         regression=trend_type.to_adfuller_parameter(),
         maxlag=max_lag,
@@ -171,6 +171,46 @@ def augmented_Dickey_Fuller_test(series, trend_type, max_lag=None, auto_lag_IC=A
     )
 
 
+@dataclass
+class CoefficientSignificanceTestResult(AbstractTestResult):
+    
+    distribution   : str
+    statistic      : float
+    pvalue         : float
+    sample_size    : int
+    
+    def to_str(self, indentation=0):
+        ind_str = '    ' * indentation
+        return (
+            f'{ind_str}coefficient significance test result:\n'
+            f'{ind_str}    test statistic distribution : {self.distribution}\n'
+            f'{ind_str}    test statistic value        : {self.statistic:.3f}\n'
+            f'{ind_str}    p-value                     : {self.pvalue:.3f}\n'
+            f'{ind_str}    sample size                 : {self.series_obs}'
+        )
+    
+    def evaluate(self, significance_level=0.05):
+        return 'significant' if self.pvalue < significance_level else 'not significant'
+    
+    def to_str_evaluated(self, significance_level=0.05, indentation=0):
+        ind_str = '    ' * indentation
+        return (
+            f'{self.to_str(indentation)}\n'
+            f'{ind_str}evaluated:\n'
+            f'{ind_str}    solution           : {self.evaluate(significance_level)}\n'
+            f'{ind_str}    significance level : {significance_level}'
+        )
+
+
+def linear_trend_significance_student_test(series, model_adapter_factory):
+    pass
+
+
+def constant_bias_significance_student_test(series, model_adapter_factory):
+    pass
+
+
+
 class DoladoJenkinsonSosvillaRiveroResult(AbstractTestResult):
     
     def __init__(self, series):
@@ -183,21 +223,21 @@ class DoladoJenkinsonSosvillaRiveroResult(AbstractTestResult):
 
 def DJSR_procedure(X, significance_level=0.05):
     
-    pvalue_ADF_ct = adfuller(X, regression='ct')[1]
+    pvalue_ADF_ct = statsmodels.tsa.stattools.adfuller(X, regression='ct')[1]
     if pvalue_ADF_ct < significance_level:
         return f'TSP + linear trend ({pvalue_ADF_ct=})'
     
     if sm.OLS(np.diff(X), sm.add_constant(np.arange(len(X) - 1))).fit().pvalues[1] < significance_level:
         return 'DSP + linear trend'
     
-    pvalue_ADF_c = adfuller(X, regression='c')[1]
+    pvalue_ADF_c = statsmodels.tsa.stattools.adfuller(X, regression='c')[1]
     if pvalue_ADF_c < significance_level:
         return f'TSP + constant ({pvalue_ADF_c=})'
     
     if sm.OLS(np.diff(X), np.ones(len(X) - 1)).fit().pvalues[0] < significance_level:
         return 'DSP + constant'
     
-    pvalue_ADF_0 = adfuller(X, regression='n')[1]
+    pvalue_ADF_0 = statsmodels.tsa.stattools.adfuller(X, regression='n')[1]
     if pvalue_ADF_0 < significance_level:
         return 'TSP'
     else:
@@ -207,9 +247,12 @@ def DJSR_procedure(X, significance_level=0.05):
 @dataclass
 class GrangerTestResult(AbstractTestResult):
     
-    distribution : str
-    statistic    : float
-    pvalue       : float
+    distribution   : str
+    statistic      : float
+    pvalue         : float
+    series_obs     : int
+    reason_max_lag : int
+    effect_max_lag : int
     
     def to_str(self, indentation=0):
         ind_str = '    ' * indentation
@@ -217,7 +260,10 @@ class GrangerTestResult(AbstractTestResult):
             f'{ind_str}Granger test result:\n'
             f'{ind_str}    test statistic distribution : {self.distribution}\n'
             f'{ind_str}    test statistic value        : {self.statistic:.3f}\n'
-            f'{ind_str}    p-value                     : {self.pvalue:.3f}'
+            f'{ind_str}    p-value                     : {self.pvalue:.3f}\n'
+            f'{ind_str}    series observations number  : {self.series_obs}\n'
+            f'{ind_str}    reason used lags number     : {self.reason_max_lag}\n'
+            f'{ind_str}    effect used lags number     : {self.reason_max_lag}'
         )
     
     def evaluate(self, significance_level=0.05):
@@ -276,10 +322,12 @@ def Granger_causality_robust_Wald_test(
         distribution = f'F({int(test_result.df_num)}, {int(test_result.df_denom)})'
     else:
         distribution = f'chi^2({int(test_result.df_denom)})'
-    distribution = distribution.ljust(11)
     
     return GrangerTestResult(
-        distribution = distribution,
-        statistic    = test_result.statistic.squeeze().item(),
-        pvalue       = test_result.pvalue.item()
+        distribution   = distribution,
+        statistic      = test_result.statistic.squeeze().item(),
+        pvalue         = test_result.pvalue.item(),
+        series_obs     = series_size,
+        reason_max_lag = reason_max_lag,
+        effect_max_lag = effect_max_lag
     )

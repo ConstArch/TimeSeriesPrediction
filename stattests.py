@@ -11,7 +11,7 @@ import statsmodels.tsa.stattools
 class AbstractTestResult(ABC):
     
     @abstractmethod
-    def to_str(self, indentation=0):
+    def to_str(self, indentation=1):
         pass
     
     def __str__(self):
@@ -22,7 +22,7 @@ class AbstractTestResult(ABC):
         pass
     
     @abstractmethod
-    def to_str_evaluated(self, significance_level=0.05, indentation=0):
+    def to_str_evaluated(self, *, significance_level=0.05, indentation=1):
         pass
 
 
@@ -53,20 +53,20 @@ class AutoLagResult:
     info_crit      : AutoLagInfoCriterionType
     info_crit_best : Optional[float] = None
     
-    def to_str(self, indentation=0):
+    def to_str(self, indentation=1):
         ind_str = '    ' * indentation
         if self.info_crit is not AutoLagInfoCriterionType.NONE:
             return (
-                f'{ind_str}info criterion:\n'
-                f'{ind_str}    result lag     : {self.result_lags}\n'
-                f'{ind_str}    max lag        : {self.max_lag}{" (auto)" if self.max_lag_auto else ""}\n'
-                f'{ind_str}    info criterion : {self.info_crit} (best={self.info_crit_best:.3f})'
+                f'info criterion:\n'
+                f'{ind_str}result lag     = {self.result_lags}\n'
+                f'{ind_str}max lag        = {self.max_lag}{" (automatic estimation)" if self.max_lag_auto else ""}\n'
+                f'{ind_str}info criterion = {self.info_crit} (best={self.info_crit_best:.3f})'
             )
         else:
             return (
-                f'{ind_str}without info criterion:\n'
-                f'{ind_str}    result lag : {self.result_lags}\n'
-                f'{ind_str}    max lag    : {self.max_lag}{" (auto)" if self.max_lag_auto else ""}'
+                f'without info criterion:\n'
+                f'{ind_str}result lag = {self.result_lags}\n'
+                f'{ind_str}max lag    = {self.max_lag}{" (automatic estimation)" if self.max_lag_auto else ""}'
             )
     
     def __str__(self):
@@ -90,28 +90,28 @@ class AugmentedDickeyFullerTestResult(AbstractTestResult):
     ADF_regression_obs : int
     auto_lag_result    : AutoLagResult
     
-    def to_str(self, indentation=0):
+    def to_str(self, indentation=1):
         ind_str = '    ' * indentation
         return (
-            f'{ind_str}ADF test result:\n'
-            f'{ind_str}    test statistic distribution        : {self.distribution}\n'
-            f'{ind_str}    test statistic value               : {self.ADF_stat:.3f}\n'
-            f'{ind_str}    p-value                            : {self.pvalue:.3f}\n'
-            f'{ind_str}    series observations number         : {self.series_obs}\n'
-            f'{ind_str}    ADF regression observations number : {self.ADF_regression_obs}\n'
-            f'{ind_str}    used lags:\n{self.auto_lag_result.to_str(indentation + 2)}'
+            f'ADF test result:\n'
+            f'{ind_str}test statistic distribution        = {self.distribution}\n'
+            f'{ind_str}test statistic value               = {self.ADF_stat:.3f}\n'
+            f'{ind_str}p-value                            = {self.pvalue:.3f}\n'
+            f'{ind_str}series observations number         = {self.series_obs}\n'
+            f'{ind_str}ADF regression observations number = {self.ADF_regression_obs}\n'
+            f'{ind_str}used lags = {self.auto_lag_result.to_str(indentation + 1)}'
         )
     
     def evaluate(self, significance_level=0.05):
         return 'TSP' if self.pvalue < significance_level else 'DSP'
     
-    def to_str_evaluated(self, significance_level=0.05, indentation=0):
+    def to_str_evaluated(self, *, significance_level=0.05, indentation=1):
         ind_str = '    ' * indentation
         return (
             f'{self.to_str(indentation)}\n'
-            f'{ind_str}evaluated:\n'
-            f'{ind_str}    solution           : {self.evaluate(significance_level)}\n'
-            f'{ind_str}    significance level : {significance_level}'
+            f'{ind_str}evaluated = evaluated:\n'
+            f'{ind_str}    solution           = {self.evaluate(significance_level)}\n'
+            f'{ind_str}    significance level = {significance_level}'
         )
 
 
@@ -179,69 +179,162 @@ class CoefficientSignificanceTestResult(AbstractTestResult):
     pvalue         : float
     sample_size    : int
     
-    def to_str(self, indentation=0):
+    def to_str(self, indentation=1):
         ind_str = '    ' * indentation
         return (
-            f'{ind_str}coefficient significance test result:\n'
-            f'{ind_str}    test statistic distribution : {self.distribution}\n'
-            f'{ind_str}    test statistic value        : {self.statistic:.3f}\n'
-            f'{ind_str}    p-value                     : {self.pvalue:.3f}\n'
-            f'{ind_str}    sample size                 : {self.series_obs}'
+            f'coefficient significance test result:\n'
+            f'{ind_str}test statistic distribution = {self.distribution}\n'
+            f'{ind_str}test statistic value        = {self.statistic:.3f}\n'
+            f'{ind_str}p-value                     = {self.pvalue:.3f}\n'
+            f'{ind_str}sample size                 = {self.sample_size}'
         )
     
     def evaluate(self, significance_level=0.05):
         return 'significant' if self.pvalue < significance_level else 'not significant'
     
-    def to_str_evaluated(self, significance_level=0.05, indentation=0):
+    def to_str_evaluated(self, *, significance_level=0.05, indentation=1):
         ind_str = '    ' * indentation
         return (
             f'{self.to_str(indentation)}\n'
-            f'{ind_str}evaluated:\n'
-            f'{ind_str}    solution           : {self.evaluate(significance_level)}\n'
-            f'{ind_str}    significance level : {significance_level}'
+            f'{ind_str}evaluated = evaluated:\n'
+            f'{ind_str}    solution           = {self.evaluate(significance_level)}\n'
+            f'{ind_str}    significance level = {significance_level}'
         )
 
 
-def linear_trend_significance_student_test(series, model_adapter_factory):
-    pass
+def linear_trend_significance_Student_test(series, linreg_model_adapter_factory):
+    
+    n = len(series)
+    model = linreg_model_adapter_factory(np.arange(n), series).model
+    
+    return CoefficientSignificanceTestResult(
+        distribution = f'St({n - 2})',
+        statistic    = model.tvalues[1],
+        pvalue       = model.pvalues[1],
+        sample_size  = n
+    )
 
 
-def constant_bias_significance_student_test(series, model_adapter_factory):
-    pass
+def constant_bias_significance_Student_test(series, linreg_model_adapter_factory):
+    
+    n = len(series)
+    model = linreg_model_adapter_factory(np.ones(n), series).model
+    
+    return CoefficientSignificanceTestResult(
+        distribution = f'St({n - 1})',
+        statistic    = model.tvalues[0],
+        pvalue       = model.pvalues[0],
+        sample_size  = n
+    )
 
 
+@dataclass
+class DoladoJenkinsonSosvillaRiveroProcedureResult(AbstractTestResult):
+    
+    ADF_linear   : AugmentedDickeyFullerTestResult
+    ADF_constant : AugmentedDickeyFullerTestResult
+    ADF_none     : AugmentedDickeyFullerTestResult
+    
+    St_linear   : CoefficientSignificanceTestResult
+    St_constant : CoefficientSignificanceTestResult
+    
+    def to_str(self, indentation=1):
+        ind_str = '    ' * indentation
+        return (
+            f'Dolado --- Jenkinson --- Sosvilla-Rivero procedure result:\n\n'
+            f'{ind_str}augmented DF for linear trend test result = {     self.ADF_linear  .to_str_evaluated(indentation=indentation+1)}\n\n'
+            f'{ind_str}linear trend significance Student test result = { self.St_linear   .to_str_evaluated(indentation=indentation+1)}\n\n'
+            f'{ind_str}augmented DF for constant bias test result = {    self.ADF_constant.to_str_evaluated(indentation=indentation+1)}\n\n'
+            f'{ind_str}constant bias significance Student test result = {self.St_constant .to_str_evaluated(indentation=indentation+1)}\n\n'
+            f'{ind_str}augmented DF for zero mean test result = {        self.ADF_none    .to_str_evaluated(indentation=indentation+1)}\n'
+        )
+    
+    def evaluate(self, significance_level=0.05):
+        
+        if self.ADF_linear.pvalue < significance_level:
+            
+            #if St_linear.pvalue < significance_level:
+            #    return 'TSP & linear trend'
+            #elif St_constant.pvalue < significance_level:
+            #    return 'TSP & constant bias'
+            #else:
+            #    return 'TSP & zero mean'
+            return 'TSP & linear trend'
+            
+        elif self.St_linear.pvalue < significance_level:
+            
+            return 'DSP & linear trend'
+            
+        elif self.ADF_constant.pvalue < significance_level:
+            
+            #if St_constant.pvalue < significance_level:
+            #    return 'TSP & constant bias'
+            #else:
+            #    return 'TSP & zero mean'
+            return 'TSP & constant bias'
+            
+        elif self.St_constant.pvalue < significance_level:
+            
+            return 'DSP & constant bias'
+            
+        elif self.ADF_none.pvalue < significance_level:
+            
+            return 'TSP & zero mean'
+            
+        else:
+            
+            return 'DSP & zero mean'
+        
+    # end evaluate
+    
+    def to_str_evaluated(self, *, significance_level=0.05, indentation=1):
+        ind_str = '    ' * indentation
+        return (
+            f'{self.to_str(indentation)}\n'
+            f'{ind_str}evaluated = evaluated:\n'
+            f'{ind_str}    solution           = {self.evaluate(significance_level)}\n'
+            f'{ind_str}    significance level = {significance_level}'
+        )
 
-class DoladoJenkinsonSosvillaRiveroResult(AbstractTestResult):
+
+def Dolado_Jenkinson_SosvillaRivero_procedure(
+    series,
+    linreg_model_adapter_factory,
+    ADF_max_lag=None,
+    ADF_auto_lag_IC=AutoLagInfoCriterionType.AIC
+):
+    delta_series = np.diff(series)
     
-    def __init__(self, series):
-        #self.pvalue_ADF_ct = 
-        pass
-    
-    def __str__(self):
-        pass
+    return DoladoJenkinsonSosvillaRiveroProcedureResult(
+        ADF_linear   = augmented_Dickey_Fuller_test(series, TrendType.LINEAR  , max_lag=ADF_max_lag, auto_lag_IC=ADF_auto_lag_IC),
+        ADF_constant = augmented_Dickey_Fuller_test(series, TrendType.CONSTANT, max_lag=ADF_max_lag, auto_lag_IC=ADF_auto_lag_IC),
+        ADF_none     = augmented_Dickey_Fuller_test(series, TrendType.NONE    , max_lag=ADF_max_lag, auto_lag_IC=ADF_auto_lag_IC),
+        St_linear    =  linear_trend_significance_Student_test(delta_series, linreg_model_adapter_factory),
+        St_constant  = constant_bias_significance_Student_test(delta_series, linreg_model_adapter_factory)
+    )
 
 
-def DJSR_procedure(X, significance_level=0.05):
-    
-    pvalue_ADF_ct = statsmodels.tsa.stattools.adfuller(X, regression='ct')[1]
-    if pvalue_ADF_ct < significance_level:
-        return f'TSP + linear trend ({pvalue_ADF_ct=})'
-    
-    if sm.OLS(np.diff(X), sm.add_constant(np.arange(len(X) - 1))).fit().pvalues[1] < significance_level:
-        return 'DSP + linear trend'
-    
-    pvalue_ADF_c = statsmodels.tsa.stattools.adfuller(X, regression='c')[1]
-    if pvalue_ADF_c < significance_level:
-        return f'TSP + constant ({pvalue_ADF_c=})'
-    
-    if sm.OLS(np.diff(X), np.ones(len(X) - 1)).fit().pvalues[0] < significance_level:
-        return 'DSP + constant'
-    
-    pvalue_ADF_0 = statsmodels.tsa.stattools.adfuller(X, regression='n')[1]
-    if pvalue_ADF_0 < significance_level:
-        return 'TSP'
-    else:
-        return 'DSP'
+#def Dolado_Jenkinson_SosvillaRivero_procedure(X, significance_level=0.05):
+#    
+#    pvalue_ADF_ct = statsmodels.tsa.stattools.adfuller(X, regression='ct')[1]
+#    if pvalue_ADF_ct < significance_level:
+#        return f'TSP + linear trend ({pvalue_ADF_ct=})'
+#    
+#    if sm.OLS(np.diff(X), sm.add_constant(np.arange(len(X) - 1))).fit().pvalues[1] < significance_level:
+#        return 'DSP + linear trend'
+#    
+#    pvalue_ADF_c = statsmodels.tsa.stattools.adfuller(X, regression='c')[1]
+#    if pvalue_ADF_c < significance_level:
+#        return f'TSP + constant ({pvalue_ADF_c=})'
+#    
+#    if sm.OLS(np.diff(X), np.ones(len(X) - 1)).fit().pvalues[0] < significance_level:
+#        return 'DSP + constant'
+#    
+#    pvalue_ADF_0 = statsmodels.tsa.stattools.adfuller(X, regression='n')[1]
+#    if pvalue_ADF_0 < significance_level:
+#        return 'TSP'
+#    else:
+#        return 'DSP'
 
 
 @dataclass
@@ -269,7 +362,7 @@ class GrangerTestResult(AbstractTestResult):
     def evaluate(self, significance_level=0.05):
         return 'causality' if self.pvalue < significance_level else 'non-causality'
     
-    def to_str_evaluated(self, significance_level=0.05, indentation=0):
+    def to_str_evaluated(self, *, significance_level=0.05, indentation=0):
         ind_str = '    ' * indentation
         return (
             f'{self.to_str(indentation)}\n'

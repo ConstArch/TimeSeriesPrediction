@@ -13,7 +13,7 @@
 
 \setbeamertemplate{caption}[numbered]
 
-\title[]{Построение СК-оптимальных предикторов\\для финансовых временных рядов}
+\title[]{Построение среднеквадратически оптимальных предикторов для финансовых временных рядов}
 \author[К.\,А. Артемьев]{Автор: К.\,А. Артемьев}
 \institute[]{Руководитель: Е.\,Р. Горяинова}
 
@@ -102,7 +102,7 @@
 	% Слайд 2: Цель и задачи (компактно)
 	\begin{frame}{Цель и задачи работы}
 		\small
-		\textbf{Цель:} построение СК-оптимального предиктора $Y_{t+h}$ по $Y_t,\dots,Y_{t-p+1}, X_t,\dots,X_{t-q+1}$, где $X_t$ и $Y_t$ --- временные ряды DGS1 и DGS3 соответственно.
+		\textbf{Цель:} построение среднеквадратически оптимального предиктора $Y_{t+h}$ по $Y_t,\dots,Y_{t-p+1}, X_t,\dots,X_{t-q+1}$, где $X_t$ и $Y_t$ --- временные ряды DGS1 и DGS3 соответственно.
 		
 		\vspace{0.2cm}
 		\textbf{Задачи:}
@@ -114,28 +114,26 @@
 				\item M-оценками Хьюбера и Тьюки,
 			\end{itemize}
 			при разных типах аддитивных шумов (вычислительный эксперимент).
-			\item Исследование рядов $X_t$ и $Y_t$ на коинтеграцию (классические и робастные методы).
-			\item Исследование рядов $X_t$ и $Y_t$ на причинность по Грейнджеру с помощью теста Вальда.
-			\item Построение СК-оптимального предиктора.
+			\item Исследование временных рядов $X_t$ и $Y_t$ на коинтеграцию (классические и робастные методы).
+			\item Исследование временных рядов $X_t$ и $Y_t$ на причинность по Грейнджеру с помощью теста Вальда.
+			\item Построение среднеквадратически оптимального предиктора.
 		\end{enumerate}
 	\end{frame}
 	
 	% Слайд 3: МНК и МНМ (два блока в одной колонке)
 	\begin{frame}{Оценки параметров: МНК и МНМ}
-		\small
+		%\small
 		Модель: $y_i = x_i^T \beta + \varepsilon_i$, $i=1,\dots,n$.
-		
 		\begin{block}{Метод наименьших квадратов (МНК, OLS)}
-			\[
-			\hat{\beta}_{OLS} = \arg\min_{\beta} \sum_{i=1}^n (y_i - x_i^T\beta)^2
-			\]
+			\begin{equation*}
+				\widehat{\beta}_{OLS} = \arg\min_{\beta} \sum_{i=1}^n (y_i - x_i^T\beta)^2
+			\end{equation*}
 			Чувствителен к выбросам.
 		\end{block}
-		
 		\begin{block}{Метод наименьших модулей (МНМ, LAD)}
-			\[
-			\hat{\beta}_{LAD} = \arg\min_{\beta} \sum_{i=1}^n |y_i - x_i^T\beta|
-			\]
+			\begin{equation*}
+				\widehat{\beta}_{LAD} = \arg\min_{\beta} \sum_{i=1}^n |y_i - x_i^T\beta|
+			\end{equation*}
 			Более робастен к выбросам, чем МНК.
 		\end{block}
 	\end{frame}
@@ -177,42 +175,40 @@
 	\begin{frame}{M-оценки}
 		\small
 		M-оценка определяется как
-		\[
-		\hat{\beta}_M = \arg\min_{\beta} \sum_{i=1}^n \rho\left(\frac{y_i - x_i^T\beta}{\sigma}\right).
-		\]
+		\begin{equation*}
+			\widehat{\beta}_M = \arg\min_{\beta} \sum_{i=1}^n \rho\left(\frac{y_i - x_i^T\beta}{s}\right).
+		\end{equation*}
 		
 		\textbf{Функция потерь Хьюбера:}
-		\[
-		\rho_{MH}(u) = 
-		\begin{cases}
-			\frac{1}{2}u^2, & |u| \le k, \\
-			k|u| - \frac{1}{2}k^2, & |u| > k,
-		\end{cases}
-		\qquad k=1.345.
-		\]
+		\begin{equation*}
+			\rho_{MH}(u) = \begin{cases}
+				\frac{1}{2}u^2, & |u| \le k, \\
+				k|u| - \frac{1}{2}k^2, & |u| > k,
+			\end{cases}
+			\qquad k \approx 1{,}345.
+		\end{equation*}
 		
 		\vspace{0.2cm}
 		\textbf{Функция потерь Тьюки (биквадратная):}
-		\[
-		\rho_{MT}(u) = 
-		\begin{cases}
-			\frac{c^2}{6}\left(1 - \left[1 - \left(\frac{u}{c}\right)^2\right]^3\right), & |u| \le c, \\[4pt]
-			\frac{c^2}{6}, & |u| > c,
-		\end{cases}
-		\qquad c=4.685.
-		\]
+		\begin{equation*}
+			\rho_{MT}(u) = \begin{cases}
+				\frac{c^2}{6}\left(1 - \left[1 - \left(\frac{u}{c}\right)^2\right]^3\right), & |u| \le c, \\[4pt]
+				\frac{c^2}{6}, & |u| > c,
+			\end{cases}
+			\qquad c \approx 4{,}685.
+		\end{equation*}
 	\end{frame}
 	
 	\begin{frame}{Коинтеграция временных рядов}
 		\begin{block}{Определение}
-			Пусть $X_t$ и $Y_t$ – нестационарные ряды $I(1)$. Они называются \textbf{коинтегрированными}, если существует такой параметр $\beta$, что линейная комбинация $E_t = Y_t - \beta X_t$ стационарна.
+			Пусть $X_t$ и $Y_t$ --- нестационарные временные ряды $I(1)$. Они называются \textbf{коинтегрированными}, если существует такой параметр $\beta$, что линейная комбинация $E_t = Y_t - \beta X_t$ стационарна.
 		\end{block}
 		\begin{block}{Расширенный критерий Дики --- Фуллера (ADF)}
 			Для проверки стационарности остатков $E_t$ оценивается модель:
-			\[
-			\Delta E_t = \gamma E_{t-1} + \sum_{i=1}^{p} \theta_i \Delta E_{t-i} + \varepsilon_t.
-			\]
-			Гипотеза $H_0$: $\gamma = 0$ (наличие единичного корня, нестационарность). Если статистика $\widehat{DF}_0(\hat\gamma)$ меньше критического значения $DF_0$, то $H_0$ отвергается --- ряды коинтегрированы.
+			\begin{equation*}
+				\Delta E_t = \gamma E_{t-1} + \sum_{i=1}^{p} \theta_i \Delta E_{t-i} + \varepsilon_t.
+			\end{equation*}
+			Гипотеза $H_0$: $\gamma = 0$ (наличие единичного корня, нестационарность). Если статистика $\widehat{DF}_0(\widehat\gamma)$ меньше критического значения $DF_0$, то $H_0$ отвергается --- ряды коинтегрированы.
 		\end{block}
 	\end{frame}
 	
@@ -225,38 +221,33 @@
 		\end{itemize}
 	\end{frame}
 	
-	\begin{frame}{Причинность по Грейнджеру (G-причинность)}
+	\begin{frame}{Причинность по Грейнджеру}
 		\begin{block}{Определение}
-			Временной ряд $X_t$ является причиной по Грейнджеру для $Y_t$, если прошлые значения $X_t$ помогают предсказывать $Y_t$ при учёте собственных лагов $Y_t$, т.\,е.
+			Говорят, что временной ряд $X_t$ есть \textbf{причина по Грейнджеру} (G-причина) для $Y_t$, если прошлые значения $X_t$ помогают предсказывать $Y_t$ при учёте собственных лагов $Y_t$, т.\,е.
 			\begin{equation*}
 				\mathbb{E} \left[ Y_t \mid Y_{\tau}, \, \tau<t \right] \ne \mathbb{E} \left[ Y_t \mid Y_{\tau}, \, X_{\tau}, \, \tau<t \right].
 			\end{equation*}
 		\end{block}
-		
-		%Рассмотрим VAR-модель порядка $p$:
 		Будем рассматривать следующую модель:
-		\[
-		Y_t = \alpha_0 + \sum_{i=1}^p \alpha_i Y_{t-i} + \sum_{i=1}^q \alpha_{p+i} X_{t-i} + \varepsilon_t.
-		\]
-		
-		\textbf{Нулевая гипотеза} об отсутствии причинности $X \not\to Y$:
-		\[
-		H_0: \alpha_{p+1} = \alpha_{p+2} = \ldots = \alpha_{p+q} = 0.
-		\]
+		\begin{equation*}
+			Y_t = \alpha_0 + \sum_{i=1}^p \alpha_i Y_{t-i} + \sum_{i=1}^q \alpha_{p+i} X_{t-i} + \varepsilon_t.
+		\end{equation*}
+		\textbf{Нулевая гипотеза} об отсутствии G-причинности $X \not\to Y$:
+		\begin{equation*}
+			H_0 \colon \alpha_{p+1} = \alpha_{p+2} = \ldots = \alpha_{p+q} = 0.
+		\end{equation*}
 	\end{frame}
 	
 	\begin{frame}{Тест Вальда для проверки причинности}
 		Статистика Вальда для линейных ограничений $R \alpha = r$:
-		\[
-		\widehat{W}(\hat{\alpha}) = (R\hat{\alpha} - r)^T \left[ R \widehat{\text{Cov}}(\hat{\alpha}) R^T \right]^{-1} (R\hat{\alpha} - r).
-		\]
-		В нашем случае $R$ --- матрица с размерностью $q \times (p+q+1)$, выделяющая коэффициенты при $X_{t-i}$, а $r$ --- столбец нулей.
-		
-		При $H_0$ статистика $W$ асимптотически распределена как $\chi^2_q$.
+		\begin{equation*}
+			\widehat{W}(\widehat\alpha) = (R \widehat\alpha - r)^T \left[ R \widehat{\text{Cov}}(\widehat\alpha) R^T \right]^{-1} (R \widehat\alpha - r).
+		\end{equation*}
+		В нашем случае $R$ --- матрица с размерностью $q \times (p+q+1)$, выделяющая коэффициенты при $X_{t-i}$, а $r$ --- столбец нулей. При $H_0$ статистика $W$ асимптотически распределена как $\chi^2_q$.
 		
 		\vspace{0.3cm}
 		\textbf{Правило принятия решения:}
-		Если $\widehat{W}(\hat{\alpha}) > \chi^2_q(1-a)$ (или p-value~$< a$), гипотеза об отсутствии причинности отвергается.
+		Если $\widehat{W}(\widehat\alpha) > \chi^2_q(1-a)$ (или p-value~$< a$), гипотеза об отсутствии причинности отвергается.
 		
 		\textbf{Результаты:}
 		\begin{itemize}
@@ -289,7 +280,7 @@
 	%	\end{itemize}
 	%\end{frame}
 	
-	\begin{frame}{СК-оптимальный предиктор}
+	\begin{frame}{Среднеквадратически оптимальный предиктор}
 		Пусть неизвестная $\eta$ связана с наблюдаемыми $\xi_1,\,\ldots,\,\xi_n$ некоторой зависимостью.
 		\begin{block}{Определение}
 			\textbf{Среднеквадратически оптимальный предиктор} (СК-оптимальный предиктор) случайной величины $\eta$ --- это такая функция $\widehat{\varphi}$, что
@@ -305,12 +296,11 @@
 		\end{block}
 	\end{frame}
 	
-	\begin{frame}{СК-оптимальный предиктор}
+	\begin{frame}{Среднеквадратически оптимальный предиктор}
 		Учитывая положительные результаты тестов на коинтеграцию между $X$ и $Y$ и G-причинность от $X$ к $Y$, построим приближение СК-оптимального предиктора $Y_{t+h}$ по $Y_t,\dots,Y_{t-p+1}, X_t,\dots,X_{t-q+1}$ в~следующем виде:
 		\begin{equation*}
 			\widehat{Y}_{t+h} = \alpha_0 + \sum_{i=1}^p \alpha_i Y_{t-i+1} + \sum_{i=1}^q \alpha_{p+i} X_{t-i+1}.
 		\end{equation*}
-		
 		Параметры оцениваются с помощью МНК. % или робастных методов (например, M-оценок) для обеспечения устойчивости к выбросам.
 		На основе коинтеграции и G-причинности выбираем гиперпараметры $p=5$, $q=5$.% Предиктор демонстрирует высокую точность на тестовой выборке.
 	\end{frame}

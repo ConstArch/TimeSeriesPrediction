@@ -259,11 +259,11 @@ class DoladoJenkinsonSosvillaRiveroProcedureResult(AbstractTestResult):
             #    return 'TSP & constant bias'
             #else:
             #    return 'TSP & zero mean'
-            return 'TSP & linear trend'
+            return 'TSP by ADF_linear'
             
         elif self.St_linear.pvalue < significance_level:
             
-            return 'DSP & linear trend'
+            return 'DSP by ADF_linear & linear trend'
             
         elif self.ADF_constant.pvalue < significance_level:
             
@@ -271,19 +271,19 @@ class DoladoJenkinsonSosvillaRiveroProcedureResult(AbstractTestResult):
             #    return 'TSP & constant bias'
             #else:
             #    return 'TSP & zero mean'
-            return 'TSP & constant bias'
+            return 'TSP by ADF_constant'
             
         elif self.St_constant.pvalue < significance_level:
             
-            return 'DSP & constant bias'
+            return 'DSP by ADF_constant & constant bias'
             
         elif self.ADF_none.pvalue < significance_level:
             
-            return 'TSP & zero mean'
+            return 'TSP by ADF_none'
             
         else:
             
-            return 'DSP & zero mean'
+            return 'DSP by ADF_none & zero mean'
         
     # end evaluate
     

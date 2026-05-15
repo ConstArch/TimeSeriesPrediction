@@ -314,29 +314,6 @@ def Dolado_Jenkinson_SosvillaRivero_procedure(
     )
 
 
-#def Dolado_Jenkinson_SosvillaRivero_procedure(X, significance_level=0.05):
-#    
-#    pvalue_ADF_ct = statsmodels.tsa.stattools.adfuller(X, regression='ct')[1]
-#    if pvalue_ADF_ct < significance_level:
-#        return f'TSP + linear trend ({pvalue_ADF_ct=})'
-#    
-#    if sm.OLS(np.diff(X), sm.add_constant(np.arange(len(X) - 1))).fit().pvalues[1] < significance_level:
-#        return 'DSP + linear trend'
-#    
-#    pvalue_ADF_c = statsmodels.tsa.stattools.adfuller(X, regression='c')[1]
-#    if pvalue_ADF_c < significance_level:
-#        return f'TSP + constant ({pvalue_ADF_c=})'
-#    
-#    if sm.OLS(np.diff(X), np.ones(len(X) - 1)).fit().pvalues[0] < significance_level:
-#        return 'DSP + constant'
-#    
-#    pvalue_ADF_0 = statsmodels.tsa.stattools.adfuller(X, regression='n')[1]
-#    if pvalue_ADF_0 < significance_level:
-#        return 'TSP'
-#    else:
-#        return 'DSP'
-
-
 @dataclass
 class GrangerTestResult(AbstractTestResult):
     
@@ -366,7 +343,7 @@ class GrangerTestResult(AbstractTestResult):
         ind_str = '    ' * indentation
         return (
             f'{self.to_str(indentation)}\n'
-            f'{ind_str}evaluated:\n'
+            f'{ind_str}evaluated = evaluated:\n'
             f'{ind_str}    solution           : {self.evaluate(significance_level)}\n'
             f'{ind_str}    significance level : {significance_level}'
         )

@@ -13,9 +13,9 @@ class ModelAdapter:
     def get_model(self):
         return self.model
     
-    def get_robust_cov_model(self, cov_type='HC1'):
+    def get_robust_cov_model(self, cov_type='HC1', cov_type_kwargs={}):
         if isinstance(self.model.model, sm.OLS):
-            return self.model.get_robustcov_results(cov_type=cov_type)
+            return self.model.get_robustcov_results(cov_type=cov_type, **cov_type_kwargs)
         elif isinstance(self.model.model, sm.QuantReg | sm.RLM):
             return self.model
         else:

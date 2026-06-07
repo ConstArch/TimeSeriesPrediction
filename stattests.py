@@ -354,7 +354,8 @@ def Granger_causality_robust_Wald_test(
     effect_max_lag,
     model_adapter_factory,
     cov_type='HC1',
-    use_f=None
+    use_f=None,
+    cov_type_kwargs={}
 ):
     series_size = len(reason_series)
     sample_size = series_size - max(reason_max_lag, effect_max_lag)
@@ -383,7 +384,7 @@ def Granger_causality_robust_Wald_test(
     condition_right_part = np.zeros(shape = reason_max_lag, dtype = series_dtype)
     
     test_result = model_adapter_factory(AR_factors, AR_targets) \
-        .get_robust_cov_model(cov_type) \
+        .get_robust_cov_model(cov_type, cov_type_kwargs) \
         .wald_test(r_matrix = (condition_matrix, condition_right_part), use_f = use_f)
     
     if test_result.distribution == 'F':

@@ -10,6 +10,12 @@ class ModelAdapter:
     def __call__(self, arg):
         return self.model.predict(sm.add_constant(arg))
     
+    def predict(self, arg):
+        return self.model.predict(sm.add_constant(arg))
+    
+    def get_prediction(self, arg):
+        return self.model.get_prediction(sm.add_constant(arg))
+    
     def get_model(self):
         return self.model
     

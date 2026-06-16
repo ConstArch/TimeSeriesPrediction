@@ -9,7 +9,7 @@ class ModelAdapter:
     
     @staticmethod
     def add_constant(arg):
-        return sm.add_constant(arg, has_constant = 'add' if x.shape == (1,) else 'skip')
+        return sm.add_constant(arg, has_constant = 'add' if arg.shape == (1,) else 'skip')
     
     def __call__(self, arg):
         return self.model.predict(ModelAdapter.add_constant(arg))

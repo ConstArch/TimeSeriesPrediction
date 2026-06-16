@@ -1,7 +1,12 @@
 from statsmodels.tsa.arima.model import ARIMA
 
 
-def estimate_ARMA(series, max_p, max_q, print_progress=False):
+def estimate_ARMA(series, p, q):
+    
+    return ARIMA(series, order = (p, 0, q)).fit()
+
+
+def find_best_ARMA(series, max_p, max_q, print_progress=False):
     
     opt_model = ARIMA(series, order=(0, 0, 1)).fit()
     

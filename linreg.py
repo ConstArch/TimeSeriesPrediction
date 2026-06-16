@@ -7,14 +7,18 @@ class ModelAdapter:
     def __init__(self, model):
         self.model = model
     
+    @staticmethod
+    def add_const(arg):
+        return sm.add_constant(arg, has_constant = 'add' if x.shape == (1,) else 'skip')
+    
     def __call__(self, arg):
-        return self.model.predict(sm.add_constant(arg))
+        return self.model.predict(add_const(arg))
     
     def predict(self, arg):
-        return self.model.predict(sm.add_constant(arg))
+        return self.model.predict(add_const(arg))
     
     def get_prediction(self, arg):
-        return self.model.get_prediction(sm.add_constant(arg))
+        return self.model.get_prediction(add_const(arg))
     
     def get_model(self):
         return self.model
